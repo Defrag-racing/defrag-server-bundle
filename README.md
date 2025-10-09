@@ -4,15 +4,15 @@ This repository allows you to create a Quake 3 DeFrag server with minimal effort
 
 ## Cloning this repository
 
-Due to **very strict** foldernames required for this project, please clone this repository using this command:
+Due to **_very strict_** foldernames required for this project, please clone this repository using this command:
 
 ```sh
 git clone https://github.com/Defrag-racing/defrag-server-bundle.git ./dfsv
 ```
 
 ## Minimum requirements:
-- 64 bit Debian-based Linux system (if you do not, please scroll to the bottom of the page)
-- 150MB of RAM * # of servers
+- A 64 bit Debian-based Linux system
+- 150MB of RAM per server
 - Around 2GB of free storage
 - NFS client support (`nfs-common` package)
 
@@ -51,7 +51,7 @@ git clone https://github.com/Defrag-racing/defrag-server-bundle.git ./dfsv
 9. rerun `./launch-native.sh` and to apply changes
 10. run `ps aux | grep oDFe.ded` to see your running servers and their ports
 
-## Uploading custom maps (if not provided by )
+## Uploading custom maps (if the map is not provided by ws.q3df.org)
 
 After following the previous steps, you will have all current maps from ws.q3df.org on-demand. However, if you'd like to upload custom maps or maps not present in worldspawn, either upload pk3 files directly to `baseq3`, or :
 
@@ -80,14 +80,22 @@ From the instance OS, as user `q3df`:
 
 ## Auto-uploading demos (Dockerless only)
 
+**If you are running a Docker server, simply edit the required info within `sv.conf`**.
+
+If you were provided a RSID (More information at https://defrag.racing), this step is REQUIRED for proving runs made online.
+
+1) As `q3df`, type this command to edit your crontab file :
+
 ```sh
 crontab -e
 ```
 
-You can add an entry like that:
+Then at the end of it, copy/paste this command:
 ```
 */30 * * * * cd ~/dfsv && bash ./.docker-demoupload/upload_demos.sh
 ```
+
+This will automatically send demos to defrag-racing's server every 30 minutes.
 
 ## Troubleshooting
 
@@ -112,6 +120,8 @@ If you are not running Docker, create a folder named `.q3a` within your `$HOME` 
 
 ### Renting a VPS
 
+If you do not have a server ready, you can rent a VPS:
+
 Options:
 - https://www.vultr.com/ < cheap and good quality
 - https://aws.amazon.com/
@@ -135,4 +145,4 @@ Options:
 
 ## Credits
 - **frog** for [its original work](https://github.com/JBustos22/dfsv).
-- **Ch0wW** for rewriting parts of the project.
+- **Ch0wW** for rewriting parts of the project for [defrag.racing](https://defrag.racing/).
