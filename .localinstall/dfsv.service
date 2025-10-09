@@ -1,0 +1,16 @@
+[Unit]
+Description=Start Defrag servers
+After=network-online.target home-q3df-dfsv-game-nfs-maps.mount
+Wants=network-online.target home-q3df-dfsv-game-nfs-maps.mount
+
+[Service]
+Type=forking
+WorkingDirectory=/home/q3df/dfsv
+ExecStart=/home/q3df/dfsv/start-servers.sh
+#ExecStop=/home/q3df/dfsv/stop-native.sh
+User=q3df
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+# DO "NOT" TOUCH THIS FILE UNLESS REQUIRED TO !
+#
+# IF YOU WANT TO CREATE SERVERS,
+# GENERATE A docker-compose.override.yml FILE INSTEAD,
+# OR RUN generate_docker_service.sh !
+
+#===============================
+volumes:
+  base_baseq3:
+    driver_opts:
+      type: none
+      device: ${PWD}/game/baseq3/
+      o: bind
+  base_defrag:
+    driver_opts:
+      type: none
+      device: ${PWD}/game/defrag/
+      o: bind
+  maps:
+    driver_opts:
+      type: "nfs"
+      o: "addr=173.212.241.188,ac,noresvport,actimeo=9999"
+      device: ":/maps/bsp"
