@@ -134,5 +134,5 @@ Options:
 
 
 ## Credits
-- **frog** its [the original work](https://github.com/JBustos22/dfsv).
+- **frog** for [its original work](https://github.com/JBustos22/dfsv).
 - **Ch0wW** for rewriting parts of the project.
