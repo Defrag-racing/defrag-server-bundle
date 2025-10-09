@@ -131,3 +131,8 @@ Options:
 9. From a Powershell window (should be installed in your windows already) or command line, execute the following command:
 - `ssh root@ipofyourinstance`
 - Enter the password, proceed to next section.
+
+
+## Credits
+- **frog** its [the original work](https://github.com/JBustos22/dfsv).
+- **Ch0wW** for rewriting parts of the project.
