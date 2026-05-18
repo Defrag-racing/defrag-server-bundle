@@ -39,7 +39,7 @@ mv defrag/zz-* $basedir/defrag/
 echo "Downloading the community modules..."
 wget https://dl.defrag.racing/downloads/rs.tar
 tar -xvf rs.tar
-cp rs/defrag/modules/* $basedir/defrag/ 
+mkdir $basedir/defrag/modules && cp rs/defrag/modules/* $basedir/defrag/ 
 cp rs/defrag/qagame* $basedir/defrag/qagamei386.so
 
 cd $installdir
