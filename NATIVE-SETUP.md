@@ -1,68 +1,81 @@
 # DFSV Native Setup (No Docker)
 
-This branch contains a native implementation of DFSV that runs without Docker containers.
+Runs the defrag servers directly on the host system, without Docker containers.
+
+> **Important:** the systemd units in `.localinstall/` have the installation
+> path hardcoded to `/home/q3df/dfsv`. For a native install, create a `q3df`
+> user and clone this repository to `/home/q3df/dfsv`. If you install anywhere
+> else, you must edit `.localinstall/dfsv.service` and
+> `.localinstall/home-q3df-dfsv-game-nfs-maps.mount` accordingly (the .mount
+> file name itself must match the mount path, systemd requires it).
 
 ## Installation
 
-1. Make scripts executable and run the installation script:
+1. As root, install the required packages and 32-bit libraries:
 ```bash
-chmod +x *.sh
-sudo ./install.sh
+sudo .localinstall/install.sh
 ```
 
-This will:
-- Install required packages (wget, unzip, nano, nfs-common)
-- Download server files from dl.defrag.racing
-- Set up directory structure
-- Download default maps
+2. As the non-root user (`q3df`), download the server files:
+```bash
+chmod +x *.sh
+./download_defrag.sh
+```
+
+This downloads the oDFe engine, the defrag mod and the community modules
+from dl.defrag.racing / q3defrag.org.
 
 ## Configuration
 
-Edit `sv.conf` to configure your server settings:
+Edit `sv.conf` and fill in **at least** the required settings **before
+starting anything** (a systemd start with an empty sv.conf fails on purpose):
 - `SV_BASE_HOSTNAME`: Base hostname for your servers
 - `SV_RCON`: RCON password
 - `SV_LOCATION`: Server location
 - `ADMIN_NAME`: Administrator name
-- Server type counts (mixed_count, cpm_count, etc.)
+- Server type counts (`mixed_count`, `cpm_count`, ...)
 
 ## Usage
 
-### Starting Servers
+### Recommended: systemd
+
 ```bash
-./launch-native.sh
+sudo cp .localinstall/home-q3df-dfsv-game-nfs-maps.mount /etc/systemd/system/
+sudo cp .localinstall/dfsv.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now home-q3df-dfsv-game-nfs-maps.mount
+sudo systemctl enable --now dfsv.service
 ```
 
-This will:
-- Mount NFS maps directory from 173.212.241.188:/maps/bsp
-- Start configured servers natively on the system
-- Each server runs as a separate process
+The mount unit attaches the community map pool (NFS from
+173.212.241.188:/maps/bsp) to `game/nfs/maps`; the service starts every
+server configured in `sv.conf` on boot.
 
-### Stopping Servers
+### Manual
+
 ```bash
-./stop-native.sh
+./start-servers.sh   # start all configured servers
+./stop-servers.sh    # stop them all again
 ```
-
-This will:
-- Stop all running DFSV servers
-- Unmount NFS maps directory
-- Clean up PID files
 
 ### Server Management
 
-- Server logs: `servers/base/logs/`
-- Server configs: `servers/base/defrag/`
-- PID files: `servers/base/logs/*.pid`
+- Each server runs in its own `screen` session named `<type>_<n>`
+  (e.g. `mixed_1`); attach with `screen -r mixed_1`, detach with `Ctrl-A D`
+- Server logs: `game/defrag/<type>_<n>/<type>_<n>.log`
+- Server configs: `game/defrag/cfgs/` (global + per-gamemode) and
+  `game/defrag/<type>_<n>/main.cfg` (generated per server on start)
 
 ## Requirements
 
-- Linux system with NFS support
-- Root/sudo access for NFS mounting
-- Network access to dl.defrag.racing and NFS server
+- Linux system with NFS support (`nfs-common`)
+- i386 multiarch libraries (installed by `.localinstall/install.sh`)
+- Root/sudo access for installing packages and the NFS mount
+- Network access to dl.defrag.racing, q3defrag.org and the NFS server
 
 ## Differences from Docker Version
 
-- No Docker containers - runs directly on host system
-- NFS maps mounted directly to filesystem
-- Process management via PID files
-- Logs stored in `servers/base/logs/`
-- Each server is a separate system process
+- No Docker containers — runs directly on the host system
+- NFS maps mounted by a systemd mount unit instead of inside the container
+- Process management via named `screen` sessions
+- Servers start on boot via `dfsv.service`
