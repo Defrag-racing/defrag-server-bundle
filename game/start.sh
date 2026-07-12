@@ -2,7 +2,7 @@
 
 # Write the general settings provided in sv.conf
 printf "sets .admin-irc \"$ADMIN_IRC\"
-sets .admin-discord \"$ADMIN_DICORD\"
+sets .admin-discord \"$ADMIN_DISCORD\"
 sets .admin-mail \"$ADMIN_MAIL\"
 sets .admin-name \"$ADMIN_NAME\"
 sets .homepage \"$SV_HOMEPAGE\"
