@@ -12,7 +12,14 @@ echo "Checking sv.conf for required settings..."
 for CONFIGURABLE in SV_BASE_HOSTNAME SV_RCON SV_LOCATION ADMIN_NAME; do
 	if [[ "${!CONFIGURABLE}" = "" ]]
 	then
-		read -p "Enter $CONFIGURABLE: " $CONFIGURABLE
+		# Without a terminal (systemd service) read would hang forever —
+		# fail loudly instead so the operator knows to fill sv.conf first
+		if [ -t 0 ]; then
+			read -p "Enter $CONFIGURABLE: " $CONFIGURABLE
+		else
+			echo "ERROR: $CONFIGURABLE is not set in sv.conf. Fill it in before starting the service." >&2
+			exit 1
+		fi
 	fi
 done
 printf "\nServer Hostname: $SV_BASE_HOSTNAME\nAdmin: $ADMIN_NAME\nRcon Password: $SV_RCON\nServer Location: $SV_LOCATION\n\n"
