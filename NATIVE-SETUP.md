@@ -70,6 +70,7 @@ server configured in `sv.conf` on boot.
 
 - Linux system with NFS support (`nfs-common`)
 - i386 multiarch libraries (installed by `.localinstall/install.sh`)
+- `sshpass` for the demo upload cron (`upload_demos.sh` uses it for SFTP)
 - Root/sudo access for installing packages and the NFS mount
 - Network access to dl.defrag.racing, q3defrag.org and the NFS server
 
