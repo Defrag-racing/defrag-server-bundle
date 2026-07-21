@@ -20,8 +20,12 @@ RUN rm /server/libmysqlclient20_5.7.21-1ubuntu1_i386.deb
 USER q3user
 WORKDIR /server
 
-# 6) Get latest oDFe build from defrag racing
-RUN wget https://dl.defrag.racing/downloads/oDFe.ded
+# 6) Get latest oDFe build from defrag racing. The standalone oDFe.ded is no
+#    longer refreshed; the engine now ships inside dfsv-core.tar, so pull the
+#    core bundle and keep just the binary.
+RUN wget https://dl.defrag.racing/downloads/dfsv-core.tar \
+    && tar -xf dfsv-core.tar oDFe.ded \
+    && rm dfsv-core.tar
 RUN chmod +x /server/oDFe.ded
 
 # 9) Copy the start script and the initial maps for DF
