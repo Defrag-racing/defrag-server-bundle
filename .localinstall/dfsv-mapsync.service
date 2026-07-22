@@ -1,0 +1,15 @@
+[Unit]
+Description=Sync the defrag community map pool to game/baseq3
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=q3df
+WorkingDirectory=/home/q3df/dfsv
+ExecStart=/home/q3df/dfsv/sync-maps.sh
+# The first run downloads the whole pool (~40 GB) - never time it out,
+# and keep it polite towards the game servers running on the same host.
+TimeoutStartSec=infinity
+Nice=10
+IOSchedulingClass=idle

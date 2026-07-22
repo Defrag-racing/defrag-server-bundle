@@ -13,8 +13,8 @@ git clone https://github.com/Defrag-racing/defrag-server-bundle.git ./dfsv
 ## Minimum requirements:
 - A 64 bit Debian-based Linux system
 - 150MB of RAM per server
-- Around 2GB of free storage
-- NFS client support (`nfs-common` package)
+- Around 2GB of free storage (about 40 GB more with `MAPS_MODE=sync`, which keeps the whole map pool locally)
+- NFS client support (`nfs-common` package) - not needed with `MAPS_MODE=sync`
 
 ## Deploying the servers (Docker) - RECOMMENDED METHOD
 1. **Make sure Docker is installed**.
@@ -34,7 +34,7 @@ git clone https://github.com/Defrag-racing/defrag-server-bundle.git ./dfsv
 4. Configure `sv.conf` to your liking.
 5. Once done, run `./start-servers.sh` to and verify if there are indeed screens ( `screen -r` should redirect you to the quake 3 console). 
 6. Try connecting to your server on your defrag client (`connect ip:port` in the console) to see if you can join it.
-7. As root, make a symlink of the NFS mount for custom maps (`sudo ln -s /home/q3df/dfsv/.localinstall/home-q3df-game-nfs-maps.mount /etc/systemd/system/home-q3df-game-nfs-maps.mount`) and start the service (`systemctl enable home-q3df-game-nfs-maps.mount && systemctl start home-q3df-game-nfs-maps.mount`)
+7. As root, make a symlink of the NFS mount for custom maps (`sudo ln -s /home/q3df/dfsv/.localinstall/home-q3df-game-nfs-maps.mount /etc/systemd/system/home-q3df-game-nfs-maps.mount`) and start the service (`systemctl enable home-q3df-game-nfs-maps.mount && systemctl start home-q3df-game-nfs-maps.mount`). Alternatively, to keep a full local copy of the map pool instead of NFS, set `MAPS_MODE=sync` in `sv.conf` and enable the `dfsv-mapsync.timer` - see the "Maps" section below and `NATIVE-SETUP.md`.
 8. As root, make a symlink of the dfsv service to run it after each reboot (`sudo ln -s /home/q3df/dfsv/.localinstall/dfsv.service /etc/systemd/system/dfsv.service`) and start the service (`systemctl enable dfsv.service && systemctl start dfsv.service`)
 9. GLHF :)
 
@@ -50,6 +50,23 @@ git clone https://github.com/Defrag-racing/defrag-server-bundle.git ./dfsv
 8. Type 'y', then press 'Enter'
 9. rerun `./launch-native.sh` and to apply changes
 10. run `ps aux | grep oDFe.ded` to see your running servers and their ports
+
+## Maps: NFS mount vs local sync (`MAPS_MODE`)
+
+By default the community map pool is attached over NFS as loose `.bsp` files (`MAPS_MODE=nfs` in `sv.conf`). If you would rather keep a full local copy (no NFS dependency, keeps working during storage-server downtime), set `MAPS_MODE=sync`:
+
+- `./sync-maps.sh` downloads the pool as **bsp-only pk3s into `game/baseq3`** - one pk3 per map with just the `.bsp` inside (no textures, the server does not need them), into the same place custom maps go. Local maps must be pk3s; loose `.bsp` only works over the NFS share (and pk3s over NFS make the engine index them all and hang, which is why each mode uses a different format).
+- The first run downloads the WHOLE pool (~19 000 pk3s, about 40 GB - the script prints the exact size before it starts, check your disk space).
+- Every later run only fetches maps that appeared or changed since, so new maps land on your server within minutes.
+- Nothing is ever deleted locally, and interrupted downloads are redone safely (`.part` files).
+
+**Docker**: re-run `generate_docker_service.sh` (it switches the `maps` volume to a local bind so the container no longer depends on NFS; the pk3s flow through the existing `baseq3` bind), `docker compose up -d`, and add this to `crontab -e` as `q3df`:
+
+```
+*/10 * * * * cd ~/dfsv && bash ./sync-maps.sh
+```
+
+**Native/systemd**: enable the `dfsv-mapsync.timer` unit instead of the NFS mount unit - see `NATIVE-SETUP.md`.
 
 ## Uploading custom maps (if the map is not provided by ws.q3df.org)
 

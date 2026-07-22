@@ -39,23 +39,52 @@ starting anything** (a systemd start with an empty sv.conf fails on purpose):
 
 ### Recommended: systemd
 
+Maps first - pick ONE of the two modes (`MAPS_MODE` in `sv.conf`):
+
+**A) NFS mount (default, `MAPS_MODE=nfs`)** - attaches the community map
+pool (NFS from 173.212.241.188:/maps/bsp) to `game/nfs/maps`:
+
 ```bash
 sudo cp .localinstall/home-q3df-dfsv-game-nfs-maps.mount /etc/systemd/system/
-sudo cp .localinstall/dfsv.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now home-q3df-dfsv-game-nfs-maps.mount
+```
+
+**B) Local map sync (`MAPS_MODE=sync`)** - keeps a full local copy of the
+map pool as bsp-only pk3s in `game/baseq3` instead. The first run
+downloads the whole pool (~40 GB - it prints the exact size first, make
+sure the disk fits it), then the timer checks every ~10 minutes and
+downloads new maps right away:
+
+```bash
+sudo cp .localinstall/dfsv-mapsync.service .localinstall/dfsv-mapsync.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now dfsv-mapsync.timer
+```
+
+Then the servers themselves:
+
+```bash
+sudo cp .localinstall/dfsv.service /etc/systemd/system/
+sudo systemctl daemon-reload
 sudo systemctl enable --now dfsv.service
 ```
 
-The mount unit attaches the community map pool (NFS from
-173.212.241.188:/maps/bsp) to `game/nfs/maps`; the service starts every
-server configured in `sv.conf` on boot.
+The service starts every server configured in `sv.conf` on boot.
 
 ### Manual
 
 ```bash
 ./start-servers.sh   # start all configured servers
 ./stop-servers.sh    # stop them all again
+./sync-maps.sh       # one map-sync pass (MAPS_MODE=sync only)
+```
+
+Instead of the systemd timer, the map sync can also run from cron
+(as `q3df`, via `crontab -e`):
+
+```
+*/10 * * * * cd ~/dfsv && bash ./sync-maps.sh
 ```
 
 ### Server Management
@@ -68,7 +97,10 @@ server configured in `sv.conf` on boot.
 
 ## Requirements
 
-- Linux system with NFS support (`nfs-common`)
+- Linux system with NFS support (`nfs-common`) - only for `MAPS_MODE=nfs`
+- `jq` for the map sync script - only for `MAPS_MODE=sync` (installed by
+  `.localinstall/install.sh`), plus enough disk for the whole map pool
+  (~40 GB)
 - i386 multiarch libraries (installed by `.localinstall/install.sh`)
 - `sshpass` for the demo upload cron (`upload_demos.sh` uses it for SFTP)
 - Root/sudo access for installing packages and the NFS mount

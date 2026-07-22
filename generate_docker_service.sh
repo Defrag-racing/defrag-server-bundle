@@ -20,7 +20,20 @@ printf "\nServer Hostname: $SV_BASE_HOSTNAME\nAdmin: $ADMIN_NAME\nRcon Password:
 
 echo "Generating docker-compose.override.yml"
 rm -rf docker-compose.override.yml &>/dev/null
-printf 'services:' > docker-compose.override.yml 2>&1
+# In sync mode the maps volume must be a local bind instead of the NFS
+# volume defined in docker-compose.yml. Written FIRST because the
+# demo-upload block at the bottom can exit the script early.
+if [[ "${MAPS_MODE:-nfs}" == "sync" ]]; then
+printf 'volumes:
+  maps:
+    driver_opts:
+      type: none
+      device: ${PWD}/game/nfs/maps/
+      o: bind
+
+' > docker-compose.override.yml 2>&1
+fi
+printf 'services:' >> docker-compose.override.yml 2>&1
 for sv_type in mixed cpm vq3 fastcaps teamruns freestyle;do
 	i=0
 	sv_qty="${sv_type}_count"

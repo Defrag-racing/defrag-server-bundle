@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodically sync the defrag community map pool
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=10min
+# Spread the load so every server owner does not hit the storage at once.
+RandomizedDelaySec=60
+Persistent=true
+
+[Install]
+WantedBy=timers.target

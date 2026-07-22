@@ -6,8 +6,8 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 echo "QUAKE 3: DEFRAG SERVER INSTALL"
-echo "Installing required packages: unzip, wget, nano, nfs-common, screen"
-apt update && apt -y install unzip wget nano nfs-common screen 
+echo "Installing required packages: unzip, wget, nano, nfs-common, screen, jq"
+apt update && apt -y install unzip wget nano nfs-common screen jq
 
 echo "Enabling i386 architecture and installing required libraries"
 dpkg --add-architecture i386
