@@ -13,7 +13,7 @@ git clone https://github.com/Defrag-racing/defrag-server-bundle.git ./dfsv
 ## Minimum requirements:
 - A 64 bit Debian-based Linux system
 - 150MB of RAM per server
-- Around 2GB of free storage (about 40 GB more with `MAPS_MODE=sync`, which keeps the whole map pool locally)
+- Around 2GB of free storage (about 15 GB more with `MAPS_MODE=sync`, which keeps the whole map pool locally)
 - NFS client support (`nfs-common` package) - not needed with `MAPS_MODE=sync`
 
 ## Deploying the servers (Docker) - RECOMMENDED METHOD
@@ -56,7 +56,7 @@ git clone https://github.com/Defrag-racing/defrag-server-bundle.git ./dfsv
 By default the community map pool is attached over NFS as loose `.bsp` files (`MAPS_MODE=nfs` in `sv.conf`). If you would rather keep a full local copy (no NFS dependency, keeps working during storage-server downtime), set `MAPS_MODE=sync`:
 
 - `./sync-maps.sh` downloads the pool as **bsp-only pk3s into `game/baseq3`** - one pk3 per map with just the `.bsp` inside (no textures, the server does not need them), into the same place custom maps go. Local maps must be pk3s; loose `.bsp` only works over the NFS share (and pk3s over NFS make the engine index them all and hang, which is why each mode uses a different format).
-- The first run downloads the WHOLE pool (~19 000 pk3s, about 40 GB - the script prints the exact size before it starts, check your disk space).
+- The first run downloads the WHOLE pool (~19 000 pk3s, about 15 GB - the script prints the exact size before it starts, check your disk space).
 - Every later run only fetches maps that appeared or changed since, so new maps land on your server within minutes.
 - Nothing is ever deleted locally, and interrupted downloads are redone safely (`.part` files).
 

@@ -52,7 +52,7 @@ sudo systemctl enable --now home-q3df-dfsv-game-nfs-maps.mount
 
 **B) Local map sync (`MAPS_MODE=sync`)** - keeps a full local copy of the
 map pool as bsp-only pk3s in `game/baseq3` instead. The first run
-downloads the whole pool (~40 GB - it prints the exact size first, make
+downloads the whole pool (~15 GB - it prints the exact size first, make
 sure the disk fits it), then the timer checks every ~10 minutes and
 downloads new maps right away:
 
@@ -100,7 +100,7 @@ Instead of the systemd timer, the map sync can also run from cron
 - Linux system with NFS support (`nfs-common`) - only for `MAPS_MODE=nfs`
 - `jq` for the map sync script - only for `MAPS_MODE=sync` (installed by
   `.localinstall/install.sh`), plus enough disk for the whole map pool
-  (~40 GB)
+  (~15 GB)
 - i386 multiarch libraries (installed by `.localinstall/install.sh`)
 - `sshpass` for the demo upload cron (`upload_demos.sh` uses it for SFTP)
 - Root/sudo access for installing packages and the NFS mount
