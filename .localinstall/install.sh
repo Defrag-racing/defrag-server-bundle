@@ -13,7 +13,7 @@ echo "Enabling i386 architecture and installing required libraries"
 dpkg --add-architecture i386
 apt update
 # libncurses5/libtinfo5 were dropped in Ubuntu 24.04 (noble) and neither
-# oDFe.ded nor qagamei386.so links against them (checked via ldd) — use the
+# oDFe.ded nor qagamei386.so links against them (checked via ldd) - use the
 # ncurses6 variants so one missing package can't abort the whole batch.
 # libgcc1 is a transitional name gone in noble; libgcc-s1 is the real package.
 # mysql-common is needed by libmysqlclient20 below.

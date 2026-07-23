@@ -26,7 +26,7 @@ echo "Checking sv.conf for required settings..."
 for CONFIGURABLE in SV_BASE_HOSTNAME SV_RCON SV_LOCATION ADMIN_NAME; do
 	if [[ "${!CONFIGURABLE}" = "" ]]
 	then
-		# Without a terminal (systemd service) read would hang forever —
+		# Without a terminal (systemd service) read would hang forever -
 		# fail loudly instead so the operator knows to fill sv.conf first
 		if [ -t 0 ]; then
 			read -p "Enter $CONFIGURABLE: " $CONFIGURABLE

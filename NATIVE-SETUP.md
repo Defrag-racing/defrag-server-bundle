@@ -119,7 +119,7 @@ Instead of the systemd timer, the map sync can also run from cron
 
 ## Differences from Docker Version
 
-- No Docker containers — runs directly on the host system
+- No Docker containers - runs directly on the host system
 - NFS maps mounted by a systemd mount unit instead of inside the container
 - Process management via named `screen` sessions
 - Servers start on boot via `dfsv.service`

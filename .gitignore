@@ -15,6 +15,7 @@ game/pk3cache.dat
 game/defrag/*
 !game/defrag/cfgs/
 docker-compose.override.yml
+.mapsync.lock
 sv.conf.bak.*
 *.log
 *.bak.*
