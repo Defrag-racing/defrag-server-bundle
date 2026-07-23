@@ -39,22 +39,24 @@ starting anything** (a systemd start with an empty sv.conf fails on purpose):
 
 ### Recommended: systemd
 
-Maps first - pick ONE of the two modes (`MAPS_MODE` in `sv.conf`):
+Maps first - pick ONE of the three modes (`MAPS_MODE` in `sv.conf`):
 
-**A) NFS mount (default, `MAPS_MODE=nfs`)** - attaches the community map
-pool (NFS from 173.212.241.188:/maps/bsp) to `game/nfs/maps`:
+**A) NFS-thin maps (default, `MAPS_MODE=nfspk3`)** - mounts the bsp-only
+pk3 pool over NFS and the engine loads each map's pk3 on demand: no local
+pool, no scanning of ~19k pk3s. Requires the current oDFe build, which
+`download_defrag.sh` already installs (dfsv-core):
 
 ```bash
-sudo cp .localinstall/home-q3df-dfsv-game-nfs-maps.mount /etc/systemd/system/
+sudo cp .localinstall/home-q3df-dfsv-game-nfs-pk3bsp.mount /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now home-q3df-dfsv-game-nfs-maps.mount
+sudo systemctl enable --now home-q3df-dfsv-game-nfs-pk3bsp.mount
 ```
 
 **B) Local map sync (`MAPS_MODE=sync`)** - keeps a full local copy of the
 map pool as bsp-only pk3s in `game/baseq3` instead. The first run
 downloads the whole pool (~15 GB - it prints the exact size first, make
 sure the disk fits it), then the timer checks every ~10 minutes and
-downloads new maps right away:
+downloads new maps right away. No NFS dependency at runtime:
 
 ```bash
 sudo cp .localinstall/dfsv-mapsync.service .localinstall/dfsv-mapsync.timer /etc/systemd/system/
@@ -62,15 +64,14 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now dfsv-mapsync.timer
 ```
 
-**C) NFS-thin maps (`MAPS_MODE=nfspk3`, EXPERIMENTAL)** - mounts the
-bsp-only pk3 pool over NFS and the engine loads each map's pk3 on demand:
-no local pool, no scanning of ~19k pk3s. Requires an oDFe build with
-`fs_mapPakDir` support (not yet in the official release):
+**C) NFS mount of loose bsps (legacy, `MAPS_MODE=nfs`)** - attaches the
+community map pool (NFS from 173.212.241.188:/maps/bsp) to
+`game/nfs/maps`. Works with any oDFe build:
 
 ```bash
-sudo cp .localinstall/home-q3df-dfsv-game-nfs-pk3bsp.mount /etc/systemd/system/
+sudo cp .localinstall/home-q3df-dfsv-game-nfs-maps.mount /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now home-q3df-dfsv-game-nfs-pk3bsp.mount
+sudo systemctl enable --now home-q3df-dfsv-game-nfs-maps.mount
 ```
 
 Then the servers themselves:
@@ -108,7 +109,8 @@ Instead of the systemd timer, the map sync can also run from cron
 
 ## Requirements
 
-- Linux system with NFS support (`nfs-common`) - only for `MAPS_MODE=nfs`
+- Linux system with NFS support (`nfs-common`) - for `MAPS_MODE=nfspk3`
+  and `nfs` (not needed with `sync`)
 - `jq` for the map sync script - only for `MAPS_MODE=sync` (installed by
   `.localinstall/install.sh`), plus enough disk for the whole map pool
   (~15 GB)
