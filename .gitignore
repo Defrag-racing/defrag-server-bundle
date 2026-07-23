@@ -2,3 +2,22 @@ servers/base/
 maps/
 data/
 temp/
+
+# --- runtime/generated server state (download_defrag.sh, the servers
+# --- themselves, sync-maps.sh) - never belongs in git.
+# The three default-map pk3s in baseq3 are already tracked, so ignoring
+# the whole directory does not affect them.
+game/baseq3/
+game/nfs/
+game/oDFe.ded*
+game/ip4db.dat
+game/pk3cache.dat
+game/defrag/*
+!game/defrag/cfgs/
+docker-compose.override.yml
+sv.conf.bak.*
+*.log
+*.bak.*
+mtr-report.txt
+ping-log.txt
+iperf-jitter.json

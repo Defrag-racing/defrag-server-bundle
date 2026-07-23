@@ -7,6 +7,20 @@ fi
 
 source sv.conf
 
+# Back up sv.conf on every start: a new numbered .bak appears only when
+# the config actually changed since the newest backup, so the history
+# grows only on real edits. Keeps the last 20 backups.
+latest_bak=$(ls sv.conf.bak.* 2>/dev/null | sort -t. -k4 -n | tail -1)
+if [ -z "$latest_bak" ] || ! cmp -s sv.conf "$latest_bak"; then
+	if [ -n "$latest_bak" ]; then
+		next_bak=$(( ${latest_bak##*.bak.} + 1 ))
+	else
+		next_bak=1
+	fi
+	cp sv.conf "sv.conf.bak.$next_bak"
+	ls sv.conf.bak.* 2>/dev/null | sort -t. -k4 -n | head -n -20 | xargs -r rm --
+fi
+
 COUNTER=0
 echo "Checking sv.conf for required settings..."
 for CONFIGURABLE in SV_BASE_HOSTNAME SV_RCON SV_LOCATION ADMIN_NAME; do
