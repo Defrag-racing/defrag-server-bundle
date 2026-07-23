@@ -34,9 +34,11 @@ printf "\nServer Hostname: $SV_BASE_HOSTNAME\nAdmin: $ADMIN_NAME\nRcon Password:
 
 echo "Generating docker-compose.override.yml"
 rm -rf docker-compose.override.yml &>/dev/null
-# In sync mode the maps volume must be a local bind instead of the NFS
-# volume defined in docker-compose.yml. Written FIRST because the
+# The maps volume depends on MAPS_MODE - written FIRST because the
 # demo-upload block at the bottom can exit the script early.
+# - sync:   local bind instead of the NFS volume from docker-compose.yml
+# - nfspk3: NFS volume of the bsp-only pk3 pool, mounted at nfs/pk3bsp
+MAPS_VOLUME_TARGET="/server/nfs/maps/"
 if [[ "${MAPS_MODE:-nfs}" == "sync" ]]; then
 printf 'volumes:
   maps:
@@ -44,6 +46,16 @@ printf 'volumes:
       type: none
       device: ${PWD}/game/nfs/maps/
       o: bind
+
+' > docker-compose.override.yml 2>&1
+elif [[ "${MAPS_MODE:-nfs}" == "nfspk3" ]]; then
+MAPS_VOLUME_TARGET="/server/nfs/pk3bsp/"
+printf 'volumes:
+  maps:
+    driver_opts:
+      type: "nfs"
+      o: "addr=173.212.241.188,ro,nolock,noresvport,soft,timeo=30"
+      device: ":/maps/pk3bsp"
 
 ' > docker-compose.override.yml 2>&1
 fi
@@ -67,10 +79,11 @@ for sv_type in mixed cpm vq3 fastcaps teamruns freestyle;do
     volumes:
       - base_baseq3:/server/baseq3/
       - base_defrag:/server/defrag/
-      - maps:/server/nfs/maps/
+      - maps:${MAPS_VOLUME_TARGET}
       - ./game/.q3a/://.q3a/
     restart: always
     environment:
+      - MAPS_MODE=${MAPS_MODE}
       - MDD_ENABLED=${MDD_ENABLED}
       - RS_ID=${!curr_id}
       - NAME_ID=${curr_name}

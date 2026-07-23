@@ -16,6 +16,7 @@ tmpdir="/tmp/defraginstall"
 
 mkdir -p "$basedir/baseq3"
 mkdir -p "$basedir/nfs/maps"
+mkdir -p "$basedir/nfs/pk3bsp"
 mkdir -p "$basedir/defrag/serverdemos"
 
 echo "Creating a temporary folder in /tmp/defraginstall for downloading assets..."

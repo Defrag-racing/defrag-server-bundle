@@ -60,6 +60,14 @@ case $SV_TYPE in
 esac
 
 
+# NFS-thin maps mode (MAPS_MODE=nfspk3): the engine loads <map>.pk3 on
+# demand from the mounted bsp-only pool instead of scanning it. Only takes
+# effect with an oDFe build that supports fs_mapPakDir.
+MAPPAK_SETTINGS=()
+if [ "${MAPS_MODE:-nfs}" = "nfspk3" ]; then
+  MAPPAK_SETTINGS=( +set fs_mapPakDir "nfs/pk3bsp" )
+fi
+
 SERVER_SETTINGS=(
         
         +set dedicated          "2"
@@ -86,4 +94,4 @@ SERVER_SETTINGS=(
 )
 
 # Start the server with our settings
-./oDFe.ded ${SERVER_SETTINGS[@]}
+./oDFe.ded ${SERVER_SETTINGS[@]} ${MAPPAK_SETTINGS[@]}

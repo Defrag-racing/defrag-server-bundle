@@ -68,6 +68,8 @@ By default the community map pool is attached over NFS as loose `.bsp` files (`M
 
 **Native/systemd**: enable the `dfsv-mapsync.timer` unit instead of the NFS mount unit - see `NATIVE-SETUP.md`.
 
+There is also an EXPERIMENTAL third mode, `MAPS_MODE=nfspk3`: the bsp-only pk3 pool is mounted over NFS (`game/nfs/pk3bsp`) and the engine loads each map's pk3 on demand - no local pool and no scanning of ~19k pk3s. It requires an oDFe build with `fs_mapPakDir` support, which is not in the official release yet.
+
 ## Uploading custom maps (if the map is not provided by ws.q3df.org)
 
 After following the previous steps, you will have all current maps from ws.q3df.org on-demand. However, if you'd like to upload custom maps or maps not present in worldspawn, either upload pk3 files directly to `baseq3`, or :

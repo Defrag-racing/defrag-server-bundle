@@ -63,6 +63,7 @@ for sv_type in mixed cpm vq3 fastcaps teamruns freestyle;do
 		mkdir -p ./game/defrag/$curr_name
 
 		# Start the server in background
+		export MAPS_MODE=${MAPS_MODE}
 		export MDD_ENABLED=${MDD_ENABLED}
 		export RS_ID=${!curr_id}
 		export NAME_ID=${curr_name}

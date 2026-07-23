@@ -62,6 +62,17 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now dfsv-mapsync.timer
 ```
 
+**C) NFS-thin maps (`MAPS_MODE=nfspk3`, EXPERIMENTAL)** - mounts the
+bsp-only pk3 pool over NFS and the engine loads each map's pk3 on demand:
+no local pool, no scanning of ~19k pk3s. Requires an oDFe build with
+`fs_mapPakDir` support (not yet in the official release):
+
+```bash
+sudo cp .localinstall/home-q3df-dfsv-game-nfs-pk3bsp.mount /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now home-q3df-dfsv-game-nfs-pk3bsp.mount
+```
+
 Then the servers themselves:
 
 ```bash

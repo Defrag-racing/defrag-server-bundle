@@ -1,0 +1,12 @@
+[Unit]
+Description=Mount the defrag bsp-only map pk3 pool (MAPS_MODE=nfspk3)
+After=network.target
+
+[Mount]
+What=173.212.241.188:/maps/pk3bsp
+Where=/home/q3df/dfsv/game/nfs/pk3bsp
+Type=nfs
+Options=ro,nolock,noresvport,soft,timeo=30
+
+[Install]
+WantedBy=multi-user.target
