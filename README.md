@@ -104,7 +104,7 @@ From the instance OS, as user `q3df`:
 
 ## Auto-uploading demos over SFTP
 
-If you were provided a RSID (more information at https://defrag.racing), this step is REQUIRED for proving runs made online. Request your SFTP credentials on the defrag.racing **server hosting** page - after approval it shows the host, port, username, remote path and a one-time password.
+If you were provided a RSID (more information at https://defrag.racing), this step is REQUIRED for proving runs made online. Request your SFTP credentials on the defrag.racing **server hosting** page at https://defrag.racing/server-hosting (log in first) - after approval it shows the host, port, username, remote path and a one-time password.
 
 Fill them into the `DEMO_SFTP_*` block of `sv.conf` and set `DEMO_SFTP_ENABLED=1`.
 
