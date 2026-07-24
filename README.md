@@ -1,6 +1,6 @@
 # DeFrag Server Bundle
 
-This repository allows you to create a Quake 3 DeFrag server with minimal efforts, with the help of Docker, or manually if you're brave enough.
+This repository allows you to create a Quake 3 DeFrag server with minimal efforts, with the help of Docker, or natively if you're brave enough.
 
 ## Cloning this repository
 
@@ -16,41 +16,53 @@ git clone https://github.com/Defrag-racing/defrag-server-bundle.git ./dfsv
 - Around 2GB of free storage (about 15 GB more with `MAPS_MODE=sync`, which keeps the whole map pool locally)
 - NFS client support (`nfs-common` package) - not needed with `MAPS_MODE=sync`
 - The current oDFe build for the default `MAPS_MODE=nfspk3` - `download_defrag.sh` installs it automatically (dfsv-core)
+- For Docker installs: **Docker Compose v2** (`docker compose version`). The legacy `docker-compose` 1.x cannot parse the compose files in this repo - see Troubleshooting.
 
 ## Deploying the servers (Docker) - RECOMMENDED METHOD
-1. **Make sure Docker is installed**.
-2. Create a regular user called `q3df` (**very important**).
-3. Make sure the `q3df` user has permissions to get the `docker` group. (`sudo usermod -aG docker q3df`). 
-4. Log as `q3df` and `git clone` this repository.
-5. Inside the folder, build the docker image (`docker build -t q3df .`).
-6. As `q3df`, run `./download_defrag.sh` to download all required files for defrag.
-7. Once done, configure `sv.conf` to your likings.
-8. Run `generate_docker_service.sh` to generate a `docker-compose.override.yml` file. Review the data if necessary.
-9. Run `docker compose up -d` to run it in the background. Test if everything works properly by connecting to your server.
+
+1. **Make sure Docker is installed** and `docker compose version` reports v2.
+2. As root, create a regular user called `q3df` (**very important**) and let it use Docker:
+   ```sh
+   useradd -m -s /bin/bash q3df
+   usermod -aG docker q3df
+   ```
+3. Log in as `q3df` and `git clone` this repository (see above).
+4. Inside the folder, run `./download_defrag.sh` to download all required files for defrag (engine + mod + baseq3 paks, ~500 MB).
+5. Configure `sv.conf` to your likings (see Customization below). For MDD/recordsystem servers also drop your `mysqlconnection.info` into `game/defrag/`.
+6. Build the docker image: `docker build -t q3df .`
+7. Run `./generate_docker_service.sh` to generate a `docker-compose.override.yml` file. Review the data if necessary.
+8. Run `docker compose up -d` to run everything in the background.
+9. **Open the game ports in your firewall.** The containers use host networking, which does NOT bypass ufw the way port-published containers do:
+   ```sh
+   sudo ufw allow 27960:27969/udp comment 'defrag servers'
+   ```
+10. Test by connecting to your server from a defrag client (`/connect ip:port`).
+
+After every `sv.conf` change, re-run `./generate_docker_service.sh && docker compose up -d` to apply it.
 
 ## Deploying the servers (Native/No-Docker Method) - FOR ADVANCED USERS ONLY
-1. Create a regular user called `q3df` (**very important**), log into that user and `git clone` this repository. 
-2. As root, run `./.localinstall/install.sh` to install all required packages.
-3. As `q3df`, run `./download_defrag.sh` 
-4. Configure `sv.conf` to your liking.
-5. Once done, run `./start-servers.sh` to and verify if there are indeed screens ( `screen -r` should redirect you to the quake 3 console). 
-6. Try connecting to your server on your defrag client (`connect ip:port` in the console) to see if you can join it.
-7. As root, enable the NFS mount of the map pool for the default `MAPS_MODE=nfspk3` (`sudo cp /home/q3df/dfsv/.localinstall/home-q3df-dfsv-game-nfs-pk3bsp.mount /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now home-q3df-dfsv-game-nfs-pk3bsp.mount`). For the other map modes (`sync`, legacy `nfs`) see the "Maps" section below and `NATIVE-SETUP.md`.
-8. As root, make a symlink of the dfsv service to run it after each reboot (`sudo ln -s /home/q3df/dfsv/.localinstall/dfsv.service /etc/systemd/system/dfsv.service`) and start the service (`systemctl enable dfsv.service && systemctl start dfsv.service`)
-9. GLHF :)
+
+See [NATIVE-SETUP.md](NATIVE-SETUP.md) for the full walkthrough (systemd units for the servers, the NFS mount or map-sync timer, and manual `start-servers.sh` / `stop-servers.sh` usage). Short version:
+
+1. Create the `q3df` user and clone this repo to `/home/q3df/dfsv` (the systemd units hardcode that path).
+2. As root: `sudo .localinstall/install.sh` (packages + 32-bit libraries).
+3. As `q3df`: `./download_defrag.sh`, then fill in `sv.conf`.
+4. Enable the mount/timer unit for your `MAPS_MODE` and the `dfsv.service` unit - exact commands in NATIVE-SETUP.md.
 
 ## Customization
+
 1. ssh into your instance
 2. run `cd ~/dfsv`
 3. run `nano sv.conf`
- - To set a permanent hostname, rcon, admin, and location, fill in the information in the first block
- - To make your server private, modify the "Server privacy" block. Set SV_PRIVATE to 1 and replace the default password to the desired one
- - To control how many and what types of servers to deploy, modify the "Server counts" block. (e.g set `mixed_count=3` for 3 mixed servers)
- - To modify the suffixes (- mixed 1, mixed 2, teamruns 1, etc.) Modify the `Server suffixes` block.
-4. Once ready, press Ctrl + x
-8. Type 'y', then press 'Enter'
-9. rerun `./launch-native.sh` and to apply changes
-10. run `ps aux | grep oDFe.ded` to see your running servers and their ports
+   - To set a permanent hostname, rcon, admin, and location, fill in the information in the first block
+   - To make your server private, modify the "Server privacy" block. Set SV_PRIVATE to 1 and replace the default password with the desired one
+   - To control how many and what types of servers to deploy, modify the "Server counts" block. (e.g set `mixed_count=3` for 3 mixed servers)
+   - To modify the suffixes (- mixed 1, mixed 2, teamruns 1, etc.), modify the `Server suffixes` block.
+4. Save (Ctrl+O, Enter) and exit (Ctrl+X)
+5. Apply the changes:
+   - Docker: `./generate_docker_service.sh && docker compose up -d`
+   - Native: `./stop-servers.sh && ./start-servers.sh`
+6. run `ps aux | grep oDFe.ded` to see your running servers and their ports
 
 ## Maps: three modes (`MAPS_MODE` in `sv.conf`)
 
@@ -75,11 +87,11 @@ Native/systemd: enable the `dfsv-mapsync.timer` unit instead of the NFS mount un
 
 ## Uploading custom maps (if the map is not provided by ws.q3df.org)
 
-After following the previous steps, you will have all current maps from ws.q3df.org on-demand. However, if you'd like to upload custom maps or maps not present in worldspawn, either upload pk3 files directly to `baseq3`, or :
+After following the previous steps, you will have all current maps from ws.q3df.org on-demand. However, if you'd like to upload custom maps or maps not present in worldspawn, either upload pk3 files directly to `baseq3`, or:
 
 From your local PC:
 1. from the machine that contains the desired map, run (from a powershell window or command line):
-- `scp path/to/your/map q3df@ipofyourinstance:~/dfsv/game/baseq3`
+   - `scp path/to/your/map q3df@ipofyourinstance:~/dfsv/game/baseq3`
 2. Enter your instance's password.
 3. Restart your server from the game by callvoting the current map.
 4. Callvote your map
@@ -90,44 +102,62 @@ From the instance OS, as user `q3df`:
 3. Restart your server from the game by callvoting the current map.
 4. Callvote your map.
 
-### Quickly migrating to a new location while keeping settings
-1. Once you have all your desired settings, you can create a snapshot for free (at the time of this writeup) on vultr.
-2. Click on the instance with all your settings
-3. Go to the 'snapshots' tab
-4. Create snapshot, enter whatever name suitable.
-5. Re-do the deployment steps from the beginning of this readme, this type choosing "Snapshot" instead of "64 Bit OS"
-6. Choose the snapshot with the name you chose in step 4.
-7. Deploy. Once done installing, everything will be up but in your new location. Try connecting via defrag.
-8. Destroy unused instances to avoid unecessary billing.
+## Auto-uploading demos over SFTP
 
-## Auto-uploading demos (Dockerless only)
+If you were provided a RSID (more information at https://defrag.racing), this step is REQUIRED for proving runs made online. Request your SFTP credentials on the defrag.racing **server hosting** page - after approval it shows the host, port, username, remote path and a one-time password.
 
-**If you are running a Docker server, simply edit the required info within `sv.conf`**.
+Fill them into the `DEMO_SFTP_*` block of `sv.conf` and set `DEMO_SFTP_ENABLED=1`.
 
-If you were provided a RSID (More information at https://defrag.racing), this step is REQUIRED for proving runs made online.
-
-1) As `q3df`, type this command to edit your crontab file :
+**Docker:** re-run the generator and bring the stack up with a build:
 
 ```sh
-crontab -e
+./generate_docker_service.sh
+docker compose up -d --build
 ```
 
-Then at the end of it, copy/paste this command:
+This adds a `q3df-demoupload` container (shows up as `dfsv-q3df-demoupload-1`). It uploads all pending demos once at start and then every 30 minutes; each demo is **deleted locally after a successful upload**. Watch it with `docker logs -f dfsv-q3df-demoupload-1`.
+
+**Dockerless:** as `q3df`, add this to `crontab -e`:
+
 ```
 */30 * * * * cd ~/dfsv && bash ./.docker-demoupload/upload_demos.sh
 ```
 
-This will automatically send demos to defrag-racing's server every 30 minutes.
-
 ## Troubleshooting
 
+### `docker compose` fails to parse docker-compose.yml / "Version in ... is unsupported"
+You are running legacy docker-compose 1.x. Install the Compose v2 plugin (`docker-compose-plugin` package), or drop the standalone binary in place:
+
+```sh
+sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+### Servers run and send heartbeats, but nobody can connect
+The containers use host networking, so your firewall applies to them directly (unlike port-published containers, which bypass ufw via NAT). Allow the UDP game ports:
+
+```sh
+sudo ufw allow 27960:27969/udp
+```
+
+### Maps volume points at the wrong place after re-installing / migrating from an older dfsv setup
+Docker volumes survive `docker compose down` and are NOT updated when their definition changes. If this machine ran an older dfsv install, the stale `dfsv_maps` volume keeps its old NFS settings. Recreate it:
+
+```sh
+docker compose down
+docker volume rm dfsv_maps
+docker compose up -d
+```
+
+Verify with `docker volume inspect dfsv_maps` - the device should be `:/maps/pk3bsp` for `MAPS_MODE=nfspk3`.
+
 ### I set `MDD_ENABLED` to 1, but my server suddenly doesn't run...
-You need to actually do a few more steps in order to use this feature, such as having unique rs_IDs, otherwise the server won't run. 
+You need to actually do a few more steps in order to use this feature, such as having unique rs_IDs (`rs<PORT>=<id>` entries in `sv.conf`) and a `mysqlconnection.info` file in `game/defrag/`, otherwise the server won't run.
 
 Please go to the [defrag.racing](https://defrag.racing/) community for more information.
 
-### The server seems to run, but I see this message:  "VM_LoadDLL 'defrag/qagamei386.so' failed"...
-You might have libraries missing, but most likely `libmysqlclient.so.20` on your system. To verify what libraries you might not have, type this :
+### The server seems to run, but I see this message: "VM_LoadDLL 'defrag/qagamei386.so' failed"...
+You might have libraries missing, but most likely `libmysqlclient.so.20` on your system. To verify what libraries you might not have, type this:
 
 ```sh
 ldd ./game/defrag/qagamei386.so
@@ -136,9 +166,8 @@ ldd ./game/defrag/qagamei386.so
 If it wasn't installed, a `.deb` package is available inside the `.install` subdirectory.
 
 ### I see Sys_Error: Unable to create directory "/server/.q3a", error is Permission denied(13)
-If you are running Docker, simply recreate a folder named `.q3a` within the `game` folder. 
-If you are not running Docker, create a folder named `.q3a` within your `$HOME` directory. 
-
+If you are running Docker, simply recreate a folder named `.q3a` within the `game` folder.
+If you are not running Docker, create a folder named `.q3a` within your `$HOME` directory.
 
 ### Renting a VPS
 
@@ -161,10 +190,19 @@ Options:
 7. Click on "Deploy Now". Wait for server to finish installing
 8. Once finished, click on the instance to see the details. You will see ip, username, and password.
 9. From a Powershell window (should be installed in your windows already) or command line, execute the following command:
-- `ssh root@ipofyourinstance`
-- Enter the password, proceed to next section.
+   - `ssh root@ipofyourinstance`
+   - Enter the password, proceed to next section.
 
+### Quickly migrating to a new location while keeping settings
+1. Once you have all your desired settings, you can create a snapshot for free (at the time of this writeup) on vultr.
+2. Click on the instance with all your settings
+3. Go to the 'snapshots' tab
+4. Create snapshot, enter whatever name suitable.
+5. Re-do the deployment steps from the beginning of this readme, this time choosing "Snapshot" instead of "64 Bit OS"
+6. Choose the snapshot with the name you chose in step 4.
+7. Deploy. Once done installing, everything will be up but in your new location. Try connecting via defrag.
+8. Destroy unused instances to avoid unecessary billing.
 
 ## Credits
-- **frog** for [its original work](https://github.com/JBustos22/dfsv).
+- **frog** for [his original work](https://github.com/JBustos22/dfsv).
 - **Ch0wW** for rewriting parts of the project for [defrag.racing](https://defrag.racing/).
