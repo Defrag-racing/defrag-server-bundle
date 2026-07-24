@@ -24,7 +24,7 @@ WORKDIR /server
 #    longer refreshed; the engine now ships inside dfsv-core.tar, so pull the
 #    core bundle and keep just the binary.
 RUN wget https://dl.defrag.racing/downloads/dfsv-core.tar \
-    && tar -xf dfsv-core.tar oDFe.ded \
+    && tar -xf dfsv-core.tar ./oDFe.ded \
     && rm dfsv-core.tar
 RUN chmod +x /server/oDFe.ded
 
