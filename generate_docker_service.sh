@@ -100,7 +100,7 @@ for sv_type in mixed cpm vq3 fastcaps teamruns freestyle;do
       - SV_HOMEPAGE=${SV_HOMEPAGE}
       - SV_PRIVATE=${SV_PRIVATE}
       - SV_PASSWORD=${SV_PASSWORD}" >> docker-compose.override.yml 2>&1
-	sudo mkdir game/defrag/$curr_name &>/dev/null
+	mkdir -p game/defrag/$curr_name
 	#sudo cp cfgs/${sv_type}.cfg servers/base/defrag/$curr_name/main.cfg
         SERVER_STARTPORT=$(($SERVER_STARTPORT+1))
 	done
