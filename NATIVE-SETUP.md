@@ -6,7 +6,7 @@ Runs the defrag servers directly on the host system, without Docker containers.
 > path hardcoded to `/home/q3df/dfsv`. For a native install, create a `q3df`
 > user and clone this repository to `/home/q3df/dfsv`. If you install anywhere
 > else, you must edit `.localinstall/dfsv.service` and
-> `.localinstall/home-q3df-dfsv-game-nfs-maps.mount` accordingly (the .mount
+> `.localinstall/home-q3df-dfsv-game-nfs-pk3bsp.mount` accordingly (the .mount
 > file name itself must match the mount path, systemd requires it).
 
 ## Installation
@@ -39,7 +39,7 @@ starting anything** (a systemd start with an empty sv.conf fails on purpose):
 
 ### Recommended: systemd
 
-Maps first - pick ONE of the three modes (`MAPS_MODE` in `sv.conf`):
+Maps first - pick ONE of the two modes (`MAPS_MODE` in `sv.conf`):
 
 **A) NFS-thin maps (default, `MAPS_MODE=nfspk3`)** - mounts the bsp-only
 pk3 pool over NFS and the engine loads each map's pk3 on demand: no local
@@ -64,15 +64,10 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now dfsv-mapsync.timer
 ```
 
-**C) NFS mount of loose bsps (legacy, `MAPS_MODE=nfs`)** - attaches the
-community map pool (NFS from 173.212.241.188:/maps/bsp) to
-`game/nfs/maps`. Works with any oDFe build:
-
-```bash
-sudo cp .localinstall/home-q3df-dfsv-game-nfs-maps.mount /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now home-q3df-dfsv-game-nfs-maps.mount
-```
+> The third mode, `MAPS_MODE=nfs` (loose `.bsp` files mounted from
+> `173.212.241.188:/maps/bsp`), was retired on 2026-07-31 - that export is
+> gone. If your `sv.conf` still says `nfs`, switch it to `nfspk3` or `sync`
+> and disable `home-q3df-dfsv-game-nfs-maps.mount`.
 
 Then the servers themselves:
 

@@ -19,5 +19,5 @@ volumes:
   maps:
     driver_opts:
       type: "nfs"
-      o: "addr=173.212.241.188,ac,noresvport,actimeo=9999"
-      device: ":/maps/bsp"
+      o: "addr=173.212.241.188,ro,nolock,noresvport,soft,timeo=30"
+      device: ":/maps/pk3bsp"

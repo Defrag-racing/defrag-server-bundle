@@ -64,7 +64,7 @@ esac
 # demand from the mounted bsp-only pool instead of scanning it. Only takes
 # effect with an oDFe build that supports fs_mapPakDir.
 MAPPAK_SETTINGS=()
-if [ "${MAPS_MODE:-nfs}" = "nfspk3" ]; then
+if [ "${MAPS_MODE:-nfspk3}" = "nfspk3" ]; then
   MAPPAK_SETTINGS=( +set fs_mapPakDir "nfs/pk3bsp" )
 fi
 

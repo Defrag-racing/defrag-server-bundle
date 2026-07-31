@@ -64,7 +64,7 @@ See [NATIVE-SETUP.md](NATIVE-SETUP.md) for the full walkthrough (systemd units f
    - Native: `./stop-servers.sh && ./start-servers.sh`
 6. run `ps aux | grep oDFe.ded` to see your running servers and their ports
 
-## Maps: three modes (`MAPS_MODE` in `sv.conf`)
+## Maps: two modes (`MAPS_MODE` in `sv.conf`)
 
 **`nfspk3` (default)** - the bsp-only pk3 pool (one pk3 per map, ~19 000 maps) is mounted over NFS at `game/nfs/pk3bsp` and the engine loads each map's pk3 on demand via `fs_mapPakDir` - no local pool, no scanning of thousands of pk3s, maps load instantly on callvote. Requires the current oDFe build, which `download_defrag.sh` installs automatically. Native: enable the `home-q3df-dfsv-game-nfs-pk3bsp.mount` unit; Docker: `generate_docker_service.sh` sets the volume up for you.
 
@@ -83,7 +83,7 @@ For Docker, re-run `generate_docker_service.sh` (it switches the `maps` volume t
 
 Native/systemd: enable the `dfsv-mapsync.timer` unit instead of the NFS mount unit - see `NATIVE-SETUP.md`.
 
-**`nfs` (legacy)** - the pool is attached over NFS as loose `.bsp` files at `game/nfs/maps` (`home-q3df-dfsv-game-nfs-maps.mount` unit, or the stock docker-compose volume). Works with any oDFe build; keep it if you cannot update the engine yet.
+> **Removed: `nfs` (legacy loose `.bsp` over NFS).** The storage stopped exporting `/maps/bsp` on 2026-07-31 - the tree was 79 GB of pure duplication (every `.bsp` is re-extractable from the original pk3) and the pk3 pool replaced it everywhere. `generate_docker_service.sh` now refuses `MAPS_MODE=nfs` instead of generating a mount that hangs. Switch to `nfspk3` (run `./download_defrag.sh` first, it installs the oDFe build that supports it) or to `sync`, and disable the `home-q3df-dfsv-game-nfs-maps.mount` unit.
 
 ## Uploading custom maps (if the map is not provided by ws.q3df.org)
 

@@ -35,6 +35,6 @@ fi
 screen -wipe > /dev/null 2>&1
 
 # NFS stays mounted on purpose - it is managed by the systemd mount unit
-# (.localinstall/home-q3df-dfsv-game-nfs-maps.mount), not by this script.
+# (.localinstall/home-q3df-dfsv-game-nfs-pk3bsp.mount), not by this script.
 
 echo "All servers stopped."

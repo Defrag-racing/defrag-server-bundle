@@ -36,10 +36,12 @@ echo "Generating docker-compose.override.yml"
 rm -rf docker-compose.override.yml &>/dev/null
 # The maps volume depends on MAPS_MODE - written FIRST because the
 # demo-upload block at the bottom can exit the script early.
-# - sync:   local bind instead of the NFS volume from docker-compose.yml
 # - nfspk3: NFS volume of the bsp-only pk3 pool, mounted at nfs/pk3bsp
+# - sync:   local bind instead of the NFS volume from docker-compose.yml
+MAPS_VOLUME_TARGET="/server/nfs/pk3bsp/"
+case "${MAPS_MODE:-nfspk3}" in
+sync)
 MAPS_VOLUME_TARGET="/server/nfs/maps/"
-if [[ "${MAPS_MODE:-nfs}" == "sync" ]]; then
 printf 'volumes:
   maps:
     driver_opts:
@@ -48,8 +50,8 @@ printf 'volumes:
       o: bind
 
 ' > docker-compose.override.yml 2>&1
-elif [[ "${MAPS_MODE:-nfs}" == "nfspk3" ]]; then
-MAPS_VOLUME_TARGET="/server/nfs/pk3bsp/"
+;;
+nfspk3)
 printf 'volumes:
   maps:
     driver_opts:
@@ -58,7 +60,21 @@ printf 'volumes:
       device: ":/maps/pk3bsp"
 
 ' > docker-compose.override.yml 2>&1
-fi
+;;
+nfs)
+	# Retired 2026-07-31: the loose .bsp tree was 79 GB of pure duplication
+	# (every bsp is re-extractable from the original pk3) and nothing used
+	# it any more, so the storage stopped exporting /maps/bsp. Failing
+	# loudly beats generating a compose file whose mount hangs.
+	echo "ERROR: MAPS_MODE=nfs was removed - the storage no longer exports /maps/bsp." >&2
+	echo "Use 'nfspk3' (needs the current oDFe, which download_defrag.sh installs) or 'sync'." >&2
+	exit 1
+;;
+*)
+	echo "ERROR: unknown MAPS_MODE '${MAPS_MODE}' in sv.conf - use 'nfspk3' or 'sync'." >&2
+	exit 1
+;;
+esac
 printf 'services:' >> docker-compose.override.yml 2>&1
 for sv_type in mixed cpm vq3 fastcaps teamruns freestyle;do
 	i=0

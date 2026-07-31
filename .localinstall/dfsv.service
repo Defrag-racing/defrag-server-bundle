@@ -1,7 +1,7 @@
 [Unit]
 Description=Start Defrag servers
-After=network-online.target home-q3df-dfsv-game-nfs-maps.mount
-Wants=network-online.target home-q3df-dfsv-game-nfs-maps.mount
+After=network-online.target home-q3df-dfsv-game-nfs-pk3bsp.mount
+Wants=network-online.target home-q3df-dfsv-game-nfs-pk3bsp.mount
 
 [Service]
 Type=forking

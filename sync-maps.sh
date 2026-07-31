@@ -30,20 +30,20 @@ cd "$(dirname "$(readlink -f "$0")")"
 LISTING_URL="${MAPSYNC_LISTING_URL:-https://dl.defrag.racing/pk3bsp/}"
 BASE_URL="${MAPSYNC_BASE_URL:-https://dl.defrag.racing/pk3bsp/}"
 DEST_DIR="$(pwd)/game/baseq3"
-NFS_MAPS_DIR="$(pwd)/game/nfs/maps"
+NFS_POOL_DIR="$(pwd)/game/nfs/pk3bsp"
 LOCK_FILE="$(pwd)/.mapsync.lock"
 
 source sv.conf
 
-if [[ "${MAPS_MODE:-nfs}" != "sync" ]]; then
-    echo "MAPS_MODE is not 'sync' in sv.conf - nothing to do (NFS mode)."
+if [[ "${MAPS_MODE:-nfspk3}" != "sync" ]]; then
+    echo "MAPS_MODE is not 'sync' in sv.conf - nothing to do (nfspk3 mode)."
     exit 0
 fi
 
 command -v jq >/dev/null || { echo "ERROR: jq is required (apt install jq)." >&2; exit 1; }
 
-if mountpoint -q "$NFS_MAPS_DIR"; then
-    echo "ERROR: $NFS_MAPS_DIR is an active NFS mount - both map modes are on at once." >&2
+if mountpoint -q "$NFS_POOL_DIR"; then
+    echo "ERROR: $NFS_POOL_DIR is an active NFS mount - both map modes are on at once." >&2
     echo "Unmount it and disable the .mount unit before using MAPS_MODE=sync." >&2
     exit 1
 fi
