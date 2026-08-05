@@ -6,6 +6,19 @@
 # run, which reads like the upload failed when nothing is wrong.
 [ -f sv.conf ] && source sv.conf
 
+# One run at a time. Cron fires this every 30 minutes regardless of whether the
+# previous run has finished, which is harmless with a handful of demos and not
+# harmless with a backlog: several runs walk the same file list, one uploads a
+# demo and deletes it, and the others then report that same demo as missing or
+# fail to delete it. Nothing is lost, but the log stops meaning anything and the
+# work is done several times over. Seen with three runs at once against a
+# backlog of 8688.
+exec 9>/tmp/upload_demos.lock
+if ! flock -n 9; then
+    echo "Another upload run is still going, skipping this one."
+    exit 0
+fi
+
 # Check if .env file exists and has required variables
 if [[ -z "${DEMO_SFTP_ENABLED}" || "${DEMO_SFTP_ENABLED}" -eq 0 ]] ; then
     exit 1
