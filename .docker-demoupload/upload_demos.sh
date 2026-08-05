@@ -1,6 +1,10 @@
 #!/bin/bash
 
-source sv.conf
+# Only the native install has an sv.conf to read; in the container every one of
+# these arrives as an environment variable from docker-compose. Sourcing it
+# unconditionally printed "sv.conf: No such file or directory" on every single
+# run, which reads like the upload failed when nothing is wrong.
+[ -f sv.conf ] && source sv.conf
 
 # Check if .env file exists and has required variables
 if [[ -z "${DEMO_SFTP_ENABLED}" || "${DEMO_SFTP_ENABLED}" -eq 0 ]] ; then
