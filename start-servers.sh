@@ -36,7 +36,8 @@ for CONFIGURABLE in SV_BASE_HOSTNAME SV_RCON SV_LOCATION ADMIN_NAME; do
 		fi
 	fi
 done
-printf "\nServer Hostname: $SV_BASE_HOSTNAME\nAdmin: $ADMIN_NAME\nRcon Password: $SV_RCON\nServer Location: $SV_LOCATION\n\n"
+printf '\nServer Hostname: %s\nAdmin: %s\nRcon Password: %s\nServer Location: %s\n\n' \
+	"$SV_BASE_HOSTNAME" "$ADMIN_NAME" "(set, not shown)" "$SV_LOCATION"
 
 echo "Setting up native server environment..."
 

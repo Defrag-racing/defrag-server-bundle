@@ -30,7 +30,11 @@ for CONFIGURABLE in SV_BASE_HOSTNAME SV_RCON SV_LOCATION ADMIN_NAME; do
 		read -p "Enter $CONFIGURABLE: " $CONFIGURABLE
 	fi
 done
-printf "\nServer Hostname: $SV_BASE_HOSTNAME\nAdmin: $ADMIN_NAME\nRcon Password: $SV_RCON\nServer Location: $SV_LOCATION\n\n"
+# Not printf "...$VAR..." - a value holding a % is read as a format
+# specifier and the whole call fails. The rcon password is deliberately not
+# echoed; it used to be, and it ended up in shell history and pasted logs.
+printf '\nServer Hostname: %s\nAdmin: %s\nRcon Password: %s\nServer Location: %s\n\n' \
+	"$SV_BASE_HOSTNAME" "$ADMIN_NAME" "(set, not shown)" "$SV_LOCATION"
 
 echo "Generating docker-compose.override.yml"
 rm -rf docker-compose.override.yml &>/dev/null
@@ -86,36 +90,42 @@ for sv_type in mixed cpm vq3 fastcaps teamruns freestyle;do
 		i=$(($i+1))
 		curr_name="${sv_type}_${i}"
 		curr_hostname="${SV_BASE_HOSTNAME} ${!sv_sfx} ${i}"
-		printf "
-  ${curr_name}:
-    image: q3df
-    container_name: ${curr_name}
-    network_mode: host
-    user: \"$(id -u):$(id -g)\"
-    volumes:
-      - base_baseq3:/server/baseq3/
-      - base_defrag:/server/defrag/
-      - maps:${MAPS_VOLUME_TARGET}
-      - ./game/.q3a/://.q3a/
-    restart: always
-    environment:
-      - MAPS_MODE=${MAPS_MODE}
-      - MDD_ENABLED=${MDD_ENABLED}
-      - RS_ID=${!curr_id}
-      - NAME_ID=${curr_name}
-      - SV_TYPE=${sv_type}
-      - SV_HOSTNAME=${curr_hostname}
-      - SV_RCON=${SV_RCON}
-      - SV_LOCATION=${SV_LOCATION}
-      - SV_PORT=${SERVER_STARTPORT}
-      - ADMIN_NAME=${ADMIN_NAME}
-      - ADMIN_MAIL=${ADMIN_MAIL}
-      - ADMIN_DISCORD=${ADMIN_DISCORD}
-      - ADMIN_IRC=${ADMIN_IRC}
-      - SV_MAPBASE=${SV_MAPBASE}
-      - SV_HOMEPAGE=${SV_HOMEPAGE}
-      - SV_PRIVATE=${SV_PRIVATE}
-      - SV_PASSWORD=${SV_PASSWORD}" >> docker-compose.override.yml 2>&1
+		# Heredoc, not printf. Any of these values may hold a % - an
+		# SFTP password did, printf read it as a format specifier, failed
+		# and left the file truncated mid-line, which surfaced as an
+		# unreadable YAML rather than as the password problem it was.
+		cat >> docker-compose.override.yml <<-EOF
+
+		  ${curr_name}:
+		    image: q3df
+		    container_name: ${curr_name}
+		    network_mode: host
+		    user: "$(id -u):$(id -g)"
+		    volumes:
+		      - base_baseq3:/server/baseq3/
+		      - base_defrag:/server/defrag/
+		      - maps:${MAPS_VOLUME_TARGET}
+		      - ./game/.q3a/://.q3a/
+		    restart: always
+		    environment:
+		      - MAPS_MODE=${MAPS_MODE}
+		      - MDD_ENABLED=${MDD_ENABLED}
+		      - RS_ID=${!curr_id}
+		      - NAME_ID=${curr_name}
+		      - SV_TYPE=${sv_type}
+		      - SV_HOSTNAME=${curr_hostname}
+		      - SV_RCON=${SV_RCON}
+		      - SV_LOCATION=${SV_LOCATION}
+		      - SV_PORT=${SERVER_STARTPORT}
+		      - ADMIN_NAME=${ADMIN_NAME}
+		      - ADMIN_MAIL=${ADMIN_MAIL}
+		      - ADMIN_DISCORD=${ADMIN_DISCORD}
+		      - ADMIN_IRC=${ADMIN_IRC}
+		      - SV_MAPBASE=${SV_MAPBASE}
+		      - SV_HOMEPAGE=${SV_HOMEPAGE}
+		      - SV_PRIVATE=${SV_PRIVATE}
+		      - SV_PASSWORD=${SV_PASSWORD}
+		EOF
 	mkdir -p game/defrag/$curr_name
 	#sudo cp cfgs/${sv_type}.cfg servers/base/defrag/$curr_name/main.cfg
         SERVER_STARTPORT=$(($SERVER_STARTPORT+1))
@@ -137,18 +147,22 @@ if [[ -z ${DEMO_SFTP_REMOTEDIR} ]] ; then
     exit 1
 fi
 
-printf "
-  q3df-demoupload:
-    build: ./.docker-demoupload
-    restart: always
-    volumes:
-      - base_baseq3:/server/baseq3/
-      - base_defrag:/server/defrag/
-    environment:
-      - DEMO_SFTP_ENABLED=${DEMO_SFTP_ENABLED}
-      - DEMO_SFTP_HOST=${DEMO_SFTP_HOST}
-      - DEMO_SFTP_PORT=${DEMO_SFTP_PORT}
-      - DEMO_SFTP_USER=${DEMO_SFTP_USER}
-      - DEMO_SFTP_PASS=${DEMO_SFTP_PASS}
-      - DEMO_SFTP_REMOTEDIR=${DEMO_SFTP_REMOTEDIR}
-    ">> docker-compose.override.yml 2>&1
+# This one is why the bug was found: an SFTP password containing a % made
+# printf abort here, so the file ended mid-line and docker compose refused to
+# parse it. A heredoc passes the value through untouched.
+cat >> docker-compose.override.yml <<-EOF
+
+	  q3df-demoupload:
+	    build: ./.docker-demoupload
+	    restart: always
+	    volumes:
+	      - base_baseq3:/server/baseq3/
+	      - base_defrag:/server/defrag/
+	    environment:
+	      - DEMO_SFTP_ENABLED=${DEMO_SFTP_ENABLED}
+	      - DEMO_SFTP_HOST=${DEMO_SFTP_HOST}
+	      - DEMO_SFTP_PORT=${DEMO_SFTP_PORT}
+	      - DEMO_SFTP_USER=${DEMO_SFTP_USER}
+	      - DEMO_SFTP_PASS=${DEMO_SFTP_PASS}
+	      - DEMO_SFTP_REMOTEDIR=${DEMO_SFTP_REMOTEDIR}
+EOF

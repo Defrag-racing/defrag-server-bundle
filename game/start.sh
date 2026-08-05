@@ -1,42 +1,48 @@
 #!/bin/bash
 
-# Write the general settings provided in sv.conf
-printf "sets .admin-irc \"$ADMIN_IRC\"
-sets .admin-discord \"$ADMIN_DISCORD\"
-sets .admin-mail \"$ADMIN_MAIL\"
-sets .admin-name \"$ADMIN_NAME\"
-sets .homepage \"$SV_HOMEPAGE\"
-sets .mapbase \"$SV_MAPBASE\"
-sets .server-location \"$SV_LOCATION\"
-seta rconPassword \"$SV_RCON\"
-seta sv_hostname \"$SV_HOSTNAME\"
-seta df_sv_script_idleCfg \"${NAME_ID}/main.cfg\"
-seta g_log \"${NAME_ID}/${NAME_ID}.log\"
-" > defrag/$NAME_ID/main.cfg 2>&1
+# Write the general settings provided in sv.conf.
+#
+# Heredoc rather than printf: an rcon or admin field holding a % would be read
+# as a format specifier, and printf then fails and writes a truncated config
+# instead of the one asked for.
+cat > defrag/$NAME_ID/main.cfg <<EOF
+sets .admin-irc "$ADMIN_IRC"
+sets .admin-discord "$ADMIN_DISCORD"
+sets .admin-mail "$ADMIN_MAIL"
+sets .admin-name "$ADMIN_NAME"
+sets .homepage "$SV_HOMEPAGE"
+sets .mapbase "$SV_MAPBASE"
+sets .server-location "$SV_LOCATION"
+seta rconPassword "$SV_RCON"
+seta sv_hostname "$SV_HOSTNAME"
+seta df_sv_script_idleCfg "${NAME_ID}/main.cfg"
+seta g_log "${NAME_ID}/${NAME_ID}.log"
+EOF
 
 # In case we enabled external modules, set them up
 if [ $MDD_ENABLED -eq 1 ]; then
   export VM_GAME="0"
-  printf  "seta rs_enable \"1\"
-seta rs_mode \"0\"
-seta rs_noserverdemos \"0\"
-seta rs_anticheat \"1\"
-seta rs_debug \"111\"
-seta rs_floodlimit \"2\"
-seta rs_maxClientConnections \"4\"
-seta rs_mod_path \"defrag/modules\"
-seta rs_banTimerReset \"0\"
-seta df_obs_KillObs \"1\"
-seta rs_modules \"admin challenge compare find login logout mapdownload mapinfo me my mytime oldmytime oldrank oldtime oldtop popular random rank rankings ranktime ratemap recent servers time top user version who\"
-seta rs_server_id \"${RS_ID}\"
-" >> defrag/$NAME_ID/main.cfg 2>&1
+  cat >> defrag/$NAME_ID/main.cfg <<EOF
+seta rs_enable "1"
+seta rs_mode "0"
+seta rs_noserverdemos "0"
+seta rs_anticheat "1"
+seta rs_debug "111"
+seta rs_floodlimit "2"
+seta rs_maxClientConnections "4"
+seta rs_mod_path "defrag/modules"
+seta rs_banTimerReset "0"
+seta df_obs_KillObs "1"
+seta rs_modules "admin challenge compare find login logout mapdownload mapinfo me my mytime oldmytime oldrank oldtime oldtop popular random rank rankings ranktime ratemap recent servers time top user version who"
+seta rs_server_id "${RS_ID}"
+EOF
 else
   export VM_GAME="2"
 fi
 
 # Check if the server has to set a password
 if [ $SV_PRIVATE -eq 1 ]; then
-  printf "seta g_password \"${SV_PASSWORD}\"\n" >> defrag/$NAME_ID/main.cfg 2>&1
+  printf 'seta g_password "%s"\n' "$SV_PASSWORD" >> defrag/$NAME_ID/main.cfg 2>&1
 fi
 
 # Change the default map according to the gamemode
